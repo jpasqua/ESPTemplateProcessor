@@ -1,5 +1,5 @@
 # ESPTemplateProcessor
-Reads a textual template from SPIFFS, processes it, and sends the result to an established web client
+Reads a textual template from SPIFFS, processes it, and sends the result to an established web client.
 
 ### Notes
 
