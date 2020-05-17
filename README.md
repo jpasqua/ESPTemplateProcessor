@@ -6,7 +6,7 @@ Reads a textual template from SPIFFS, processes it, and sends the result to an e
 * This class was forked from the [original](https://github.com/winder/ESPTemplateProcessor) by [Will Winder](https://github.com/winder).
 	* There are no copyright notices or licenses that I could reproduce here.
 	* Please see the original version for additional information.
-* It is designed for use with the [https://github.com/esp8266/Arduino](Arduino ESP8266 SDK) and requires SPIFFS to store templates.
+* It is designed for use with the [Arduino Arduino ESP8266 SDK](https://github.com/esp8266/) and requires SPIFFS to store templates.
 * The callback signature is changed from the original class to make it easier to use lambdas as the processor callback
 * I have not optimized for speed or space beyond what was done in the original implementation.
 
