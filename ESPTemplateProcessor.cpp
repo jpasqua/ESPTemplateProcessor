@@ -22,6 +22,9 @@ ESPTemplateProcessor::ESPTemplateProcessor(ESP8266WebServer *_server) : server(_
 bool ESPTemplateProcessor::send(const char *filePath, const ProcessorCallback &processor, char bookend) {
   static const char EscapeChar = '\\';
 
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   if(!SPIFFS.exists(filePath)) {
     Log.warning("Cannot process %s: Does not exist.", filePath);
     return false;
@@ -32,6 +35,7 @@ bool ESPTemplateProcessor::send(const char *filePath, const ProcessorCallback &p
     Log.warning("Cannot process %s: Failed to open.", filePath); 
     return false;
   }
+#pragma GCC diagnostic pop
 
   // Assume that caller has already sent appropriate headers!!
   static const uint16_t BufferSize = 100;
