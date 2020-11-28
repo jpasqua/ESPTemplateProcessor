@@ -7,6 +7,7 @@ Reads a textual template from SPIFFS, processes it, and sends the result to an e
 	* There are no copyright notices or licenses that I could reproduce here.
 	* Please see the original version for additional information.
 * It is designed for use with the [Arduino Arduino ESP8266 SDK](https://github.com/esp8266/) and requires SPIFFS to store templates.
+* It also supports the [ESP32](https://github.com/espressif/arduino-esp32)
 * The callback signature is changed from the original class to make it easier to use lambdas as the processor callback
 * I have not optimized for speed or space beyond what was done in the original implementation.
 
@@ -19,7 +20,7 @@ Create one or more HTML template files that have substitution variables which ar
 	  <body>%POWER% \%</body>
 	</html>
 
-You must upload your template files to SPIFFS using a tool like the [ESP8266 Sketch Data Upload](https://github.com/esp8266/arduino-esp8266fs-plugin) plugin for this. 
+You must upload your template files to SPIFFS using a tool like the [ESP8266 Sketch Data Upload](https://github.com/esp8266/arduino-esp8266fs-plugin) plugin for this. For ESP32, use the [ESP32 Sketch Data Upload](https://github.com/me-no-dev/arduino-esp32fs-plugin) plugin.
 
 ### Usage
 
