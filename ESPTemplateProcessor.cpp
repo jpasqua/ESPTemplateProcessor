@@ -9,7 +9,9 @@
 //                                  Core Libraries
 #include <Arduino.h>
 #include <FS.h>
-#include <ESP8266WebServer.h>
+#if defined(ESP32)
+  #include <SPIFFS.h>
+#endif
 //                                  Third Party Libraries
 #include <ArduinoLog.h>
 //                                  Local Includes
@@ -17,7 +19,7 @@
 //--------------- End:    Includes ---------------------------------------------
 
 
-ESPTemplateProcessor::ESPTemplateProcessor(ESP8266WebServer *_server) : server(_server) { }
+ESPTemplateProcessor::ESPTemplateProcessor(WebServer *_server) : server(_server) { }
 
 bool ESPTemplateProcessor::send(const char *filePath, const ProcessorCallback &processor, char bookend) {
   static const char EscapeChar = '\\';

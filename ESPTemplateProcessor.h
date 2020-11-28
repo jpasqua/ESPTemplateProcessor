@@ -28,7 +28,14 @@
 //--------------- Begin:  Includes ---------------------------------------------
 //                                  Core Libraries
 #include <Arduino.h>
-#include <ESP8266WebServer.h>
+#if defined(ESP8266)
+  #include <ESP8266WebServer.h>
+  using WebServer = ESP8266WebServer;
+#elif defined(ESP32)
+  #include <WebServer.h>
+#else
+  #error "Must be an ESP8266 or ESP32"
+#endif
 //                                  Third Party Libraries
 //                                  Local Includes
 //--------------- End:    Includes ---------------------------------------------
@@ -44,7 +51,7 @@ public:
    *
    * @param   _server The Web Server object that should be used to send content 
    */
-  ESPTemplateProcessor(ESP8266WebServer *_server);
+  ESPTemplateProcessor(WebServer *_server);
 
   /*
    * Process and send a template which is stored in a file
@@ -59,7 +66,7 @@ public:
   bool send(const char *filePath, const ProcessorCallback &processor, char bookend = '%');
 
 private:
-  ESP8266WebServer *server;
+  WebServer* server;
 };
 
 #endif  // ESPTemplateProcessor_h
