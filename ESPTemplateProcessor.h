@@ -43,7 +43,8 @@
 
 class ESPTemplateProcessor {
 public:
-  typedef std::function<String(String&)> ProcessorCallback;
+  typedef std::function<String(const String&)> ProcessorCallback;
+  typedef std::function<void(const String&, String&)> Mapper;
 
   /*
    * Create a new ESPTemplateProcessor object which can be used to
@@ -63,7 +64,19 @@ public:
    * @return  true:     The template was successfully read, processesed, and sent
    *          false:    An error occured and processing/send was unsuccesful
    */
-  bool send(const char *filePath, const ProcessorCallback &processor, char bookend = '%');
+  bool send(const char *filePath, const ProcessorCallback& processor, char bookend = '%');
+
+  /*
+   * Process and send a template which is stored in a file
+   *
+   * @param   filePath  Path to the file that contains the template to process/send
+   * @param   processor A callback which accepts a key and a reference to a value string
+   * @param   bookend   The character the denotes the beginning/end of a key;
+   *                    e.g. %REPLACE_ME%
+   * @return  true:     The template was successfully read, processesed, and sent
+   *          false:    An error occured and processing/send was unsuccesful
+   */
+  bool send(const char *filePath, const Mapper& mapper, char bookend = '%');
 
 private:
   WebServer* server;

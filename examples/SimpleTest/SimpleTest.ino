@@ -5,8 +5,16 @@
 #include <FS.h>
 #include <ESPTemplateProcessor.h>
 
-const char *ssid = "NoRoom";
-const char *password = "feedface";
+// ESPTemplateProcessor will accept two types of functions that map
+// from keys to values. The first is a function that takes a String as
+// a paramter representing the key and returns a String which is the
+// value, The other takes a String as a key and an "out" string param
+// for the value. To test the former, comment out the line below. To
+// Test the latter, leave it defined.
+#define USE_REF_MAPPER
+
+const char *ssid = "YOUR SSID";
+const char *password = "YOUR PSK";
 String checkedOrNot[2] = {"", "checked='checked'"};
 
 
@@ -29,36 +37,70 @@ String blynkDesc = "Back Yard";
 String hostname = "pm1";
 String themeColor = "deep-orange";
 
-String weatherFromProcessor(const String &key) {
-  if (key == "WEATHER_KEY") return weatherKey;
-  if (key == "BLYNK_KEY") return blynkKey;
-  if (key == "BLYNK_DESC") return blynkDesc;
-  if (key == "CITY_NAME") return "Menlo Park";
-  if (key == "CITY") return String(553278);
-  if (key.startsWith("SL")) {
-    if (key.endsWith(language)) return "selected";
-    else return " ";
-  }
-  return "ERROR_NO_MATCH";
-}
 
-String formKeyProcessor(const String &key) {
-  if (key == "LAT") return String(lat, 6);
-  if (key == "LNG") return String(lng, 6);
-  if (key == "ELEV") return String(elevation);
-  if (key == "GMAPS_KEY") return gmapsKey;
-  if (key == "TZDB_KEY") return tzdbKey;
-  if (key == "HOSTNAME") return hostname;
-  if (key == "SERVER_PORT") return String(port);
-  if (key == "BASIC_AUTH") return checkedOrNot[useBasicAuth];
-  if (key == "WEB_UNAME") return "admin";
-  if (key == "WEB_PASS") return "password";  
-  if (key.startsWith("SL")) {
-    if (key.endsWith(themeColor)) return "selected";
-    else return " ";
+#ifdef USE_REF_MAPPER
+  void formKeyProcessor(const String &key, String& val) {
+    if (key == "LAT") val.concat(lat);
+    else if (key == "LNG") val.concat(lng);
+    else if (key == "ELEV") val.concat(elevation);
+    else if (key == "GMAPS_KEY") val = gmapsKey;
+    else if (key == "TZDB_KEY") val = tzdbKey;
+    else if (key == "HOSTNAME") val = hostname;
+    else if (key == "SERVER_PORT") val.concat(port);
+    else if (key == "BASIC_AUTH") val = checkedOrNot[useBasicAuth];
+    else if (key == "WEB_UNAME") val= "admin";
+    else if (key == "WEB_PASS") val = "password";  
+    else if (key.startsWith("SL")) {
+      if (key.endsWith(themeColor)) val = "selected";
+      else val = " ";
+    }
+    else val = "ERROR_NO_MATCH";
   }
-  return "ERROR_NO_MATCH";
-}
+  void weatherFromProcessor(const String &key, String& val) {
+    if (key == "WEATHER_KEY") val = weatherKey;
+    else if (key == "BLYNK_KEY") val = blynkKey;
+    else if (key == "BLYNK_DESC") val = blynkDesc;
+    else if (key == "CITY_NAME") val = "Menlo Park";
+    else if (key == "CITY") val.concat(553278);
+    else if (key.startsWith("SL")) {
+      if (key.endsWith(language)) val = "selected";
+      else val = " ";
+    }
+    else val = "ERROR_NO_MATCH";
+  }
+#else // Don't USE_REF_MAPPER
+  String formKeyProcessor(const String &key) {
+    if (key == "LAT") return String(lat, 6);
+    if (key == "LNG") return String(lng, 6);
+    if (key == "ELEV") return String(elevation);
+    if (key == "GMAPS_KEY") return gmapsKey;
+    if (key == "TZDB_KEY") return tzdbKey;
+    if (key == "HOSTNAME") return hostname;
+    if (key == "SERVER_PORT") return String(port);
+    if (key == "BASIC_AUTH") return checkedOrNot[useBasicAuth];
+    if (key == "WEB_UNAME") return "admin";
+    if (key == "WEB_PASS") return "password";  
+    if (key.startsWith("SL")) {
+      if (key.endsWith(themeColor)) return "selected";
+      else return " ";
+    }
+    return "ERROR_NO_MATCH";
+  }
+
+  String weatherFromProcessor(const String &key) {
+    if (key == "WEATHER_KEY") return weatherKey;
+    if (key == "BLYNK_KEY") return blynkKey;
+    if (key == "BLYNK_DESC") return blynkDesc;
+    if (key == "CITY_NAME") return "Menlo Park";
+    if (key == "CITY") return String(553278);
+    if (key.startsWith("SL")) {
+      if (key.endsWith(language)) return "selected";
+      else return " ";
+    }
+    return "ERROR_NO_MATCH";
+  }
+#endif // USE_REF_MAPPER
+
 
 void sendHeaders() {
   server->setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -95,12 +137,20 @@ void handleRoot() {
   String power = "25";
   String langTarget = "SL_fr";
 
-  auto mapper = [power, langTarget](String &key) -> String {
-    if (key == "TITLE") return TitleString;
-    if (key == "POWER") return (power);
-    if (key == langTarget) return "selected";
-    return "";
-  };
+  #ifdef USE_REF_MAPPER
+    auto mapper = [power, langTarget](const String &key, String& val) -> void {
+      if (key == "TITLE") val = TitleString;
+      else if (key == "POWER") val = power;
+      else if (key == langTarget) val = "selected";
+    };
+  #else // Don't USE_REF_MAPPER
+    auto mapper = [power, langTarget](const String &key) -> String {
+      if (key == "TITLE") return TitleString;
+      if (key == "POWER") return (power);
+      if (key == langTarget) return "selected";
+      return "";
+    };
+  #endif
 
   sendHeaders();
   if (templateHandler->send("/index.html", mapper)) {

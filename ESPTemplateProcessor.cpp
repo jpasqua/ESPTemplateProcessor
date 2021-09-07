@@ -21,9 +21,16 @@
 
 ESPTemplateProcessor::ESPTemplateProcessor(WebServer *_server) : server(_server) { }
 
-bool ESPTemplateProcessor::send(const char *filePath, const ProcessorCallback &processor, char bookend) {
-  static const char EscapeChar = '\\';
+// Provided for legacy code
+bool ESPTemplateProcessor::send(const char *filePath, const ProcessorCallback& processor, char bookend) {
+  auto refMapper = [processor](const String& key, String& val) -> void { val = processor(key); };
 
+  return send(filePath, refMapper, bookend);
+}
+
+bool ESPTemplateProcessor::send(const char *filePath, const Mapper& mapper, char bookend) {
+  static const char EscapeChar = '\\';
+  static const uint16_t BufferSize = 100;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -40,11 +47,12 @@ bool ESPTemplateProcessor::send(const char *filePath, const ProcessorCallback &p
 #pragma GCC diagnostic pop
 
   // Assume that caller has already sent appropriate headers!!
-  static const uint16_t BufferSize = 100;
   char buffer[BufferSize];
   int bufferLen = 0;
-  int val;
+  String value;
+  value.reserve(BufferSize);
 
+  int val;
   while ((val = file.read()) != -1) {
     char ch = char(val);
     
@@ -80,9 +88,14 @@ bool ESPTemplateProcessor::send(const char *filePath, const ProcessorCallback &p
       }
 
       // Get substitution
-      String processed = processor(key);
-      //Log.verbose("Lookup '%s' received: '%s'", key.c_str(), processed.c_str()); 
-      if (!processed.isEmpty()) server->sendContent(processed);
+      value.clear();
+      mapper(key, value);
+      if (!value.isEmpty()) {
+        // Log.verbose("'%s' -> '%s'", key.c_str(), value.c_str()); 
+        server->sendContent(value);
+      } else {
+        // Log.verbose("'%s' -> ''", key.c_str()); 
+      }
     } else {
       if (bufferLen == BufferSize) {
         server->sendContent(buffer, bufferLen);   // Send whatever we have already accumulated...
