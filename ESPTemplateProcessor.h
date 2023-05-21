@@ -70,13 +70,27 @@ public:
    * Process and send a template which is stored in a file
    *
    * @param   filePath  Path to the file that contains the template to process/send
-   * @param   processor A callback which accepts a key and a reference to a value string
+   * @param   mapper    A mapping function for keys
    * @param   bookend   The character the denotes the beginning/end of a key;
    *                    e.g. %REPLACE_ME%
    * @return  true:     The template was successfully read, processesed, and sent
    *          false:    An error occured and processing/send was unsuccesful
    */
   bool send(const char *filePath, const Mapper& mapper, char bookend = '%');
+
+  /*
+   * Process a short template held  in a string and put the resutls in another string
+   *
+   * @param   template  A String holding the template to be processed
+   * @param   mapper    A mapping function for keys
+   * @param   bookend   The character the denotes the beginning/end of a key;
+   *                    e.g. %REPLACE_ME%
+   * @param   result    A reference to a String which will be filled in with the result
+   *                    of processing the template
+   * @return  true:     The template was successfully read and processesed
+   *          false:    An error occured and processing was unsuccesful
+   */
+  bool process(const String& theTemplate, const Mapper& mapper, char bookend, String& result);
 
 private:
   WebServer* server;

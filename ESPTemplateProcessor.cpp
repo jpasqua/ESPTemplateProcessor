@@ -113,3 +113,64 @@ bool ESPTemplateProcessor::send(const char *filePath, const Mapper& mapper, char
   if (bufferLen != 0) { server->sendContent(buffer, bufferLen); }
   return true;
 }
+
+bool ESPTemplateProcessor::process(const String& theTemplate, const Mapper& mapper, char bookend, String& result) {
+  static const char EscapeChar = '\\';
+
+  String value;
+  value.reserve(64);
+
+  int val;
+  int index = 0;
+  int templateLength = theTemplate.length();
+
+  while (index < templateLength) {
+    val  = theTemplate[index++];
+    char ch = char(val);
+    
+    bool honorBookend = true;
+    if (ch == EscapeChar) {   // Allows escaping the bookend
+      if (index < templateLength) {
+        int next = theTemplate[index++];
+        ch = char(next);
+        if (ch == bookend) honorBookend = false;
+      }
+    }
+
+    if ((ch == bookend) && honorBookend) {
+      // Process substitution
+      String key = "";
+      bool found = false;
+      while (!found && index < templateLength) {
+        val = theTemplate[index++];
+        ch = char(val);
+        if (ch == bookend) { found = true; }
+        else { key += ch; }
+      }
+      
+      // Check whether we actually found a key
+      if (index == templateLength && !found) {
+        Log.warning("Cannot process %s: Unable to parse.", theTemplate.c_str()); 
+        return false;
+      }
+
+      // Get substitution
+      value.clear();
+      mapper(key, value);
+      if (!value.isEmpty()) {
+        // Log.verbose("'%s' -> '%s'", key.c_str(), value.c_str()); 
+        result += value;
+      } else {
+        // Log.verbose("'%s' -> ''", key.c_str()); 
+      }
+    } else {
+      result += ch;
+    }
+  }
+
+  if (index < templateLength) {  // We never hit the end of the template
+    Log.warning("Failed to process %s: Didn't reach end of template", theTemplate.c_str());
+    return false;
+  }
+  return true;
+}
